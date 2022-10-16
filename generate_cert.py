@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
 
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.x509.oid import NameOID, ObjectIdentifier
+from argparse import ArgumentParser
 from datetime import datetime
 from datetime import timedelta
-from argparse import ArgumentParser
-from os.path import exists as path_exists
-from re import fullmatch
 from ipaddress import ip_address
+from os.path import exists as path_exists
+from pathlib import Path
+from re import fullmatch
+from sys import exit as sys_exit
+
+from cryptography import x509
+from cryptography.hazmat._oid import ObjectIdentifier
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
 
 
 REGEXP_IP_ADDR = r"(\d{1,3}\.){3}\d{1,3}"
 
 
 def load_private_key(file: str):
-    with open(file, "rb") as f:
-        private_key = serialization.load_pem_private_key(f.read(), password=None)
-    return private_key
+    pkey_bytes = Path(file).read_bytes()
+    return serialization.load_pem_private_key(pkey_bytes, password=None)
 
 
 def get_subject_oid_attribute(cert: x509.Certificate, oid: ObjectIdentifier):
@@ -41,41 +44,43 @@ def main():
     if args.private_key is not None:
         keyfile = args.private_key
         if not path_exists(keyfile):
-            print("Private key {} does not exist".format(keyfile))
-            exit(1)
+            print(f"Private key {keyfile} does not exist")
+            sys_exit(1)
    
         try:
             private_key = load_private_key(args.private_key)
         except Exception as e:
-            print("Invalid key file {}: {}".format(keyfile, e))
-            exit(1)
+            print(f"Invalid key file {keyfile}: {e}")
+            sys_exit(1)
 
-        print("Private key loaded from {}".format(keyfile))
+        print(f"Private key loaded from {keyfile}")
 
     else:
-        keyfile = "{}.key".format(args.common_name)
+        keyfile = f"{args.common_name}.key"
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        with open(keyfile, "wb") as f:
-            file_content = private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
-            )
-            f.write(file_content)
-            print("Private key written to {}".format(keyfile))
+        private_key_path = Path(keyfile)
+        private_key_path.touch()
+        private_key_path.chmod(0o600)
+
+        private_key_bytes = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        private_key_path.write_bytes(private_key_bytes)
+        print(f"Private key written to {keyfile}")
 
     if not path_exists(args.ca_key):
-        print("CA key {} not found".format(args.ca_key))
-        exit(1)
+        print(f"CA key {args.ca_key} not found")
+        sys_exit(1)
 
     if not path_exists(args.ca_cert):
-        print("CA cert {} not found".format(args.ca_cert))
-        exit(1)
+        print(f"CA cert {args.ca_key} not found")
+        sys_exit(1)
 
     ca_key = load_private_key(args.ca_key)
-
-    with open(args.ca_cert, "rb") as f:
-        ca_cert = x509.load_pem_x509_certificate(f.read())
+    ca_bytes = Path(args.ca_cert).read_bytes()
+    ca_cert = x509.load_pem_x509_certificate(ca_bytes)
 
     now = datetime.today()
     one_year_from_now = now + timedelta(days=365)
@@ -151,13 +156,12 @@ def main():
     builder = builder.public_key(public_key)
 
     cert = builder.sign(private_key=ca_key, algorithm=hashes.SHA256())
-    cert_file = "{}.crt".format(args.common_name)
+    cert_file = f"{args.common_name}.crt"
+    cert_bytes = cert.public_bytes(encoding=serialization.Encoding.PEM)
+    cert_path = Path(cert_file)
+    cert_path.write_bytes(cert_bytes)
 
-    with open(cert_file, "wb") as f:
-        file_content = cert.public_bytes(encoding=serialization.Encoding.PEM)
-        f.write(file_content)
-
-    print("Certificate written to {}".format(cert_file))
+    print(f"Certificate written to {cert_file}")
 
 
 if __name__ == "__main__":
