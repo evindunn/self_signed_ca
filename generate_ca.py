@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
+from argparse import ArgumentParser
+from datetime import datetime
+from datetime import timedelta
+from pathlib import Path
+from os.path import exists as path_exists
+
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
-from datetime import datetime
-from datetime import timedelta
-from argparse import ArgumentParser
-from os.path import exists as path_exists
 
 
 def main():
@@ -30,8 +32,11 @@ def main():
             exit(1)
    
         try:
-            with open(args.private_key, "rb") as f:
-                private_key = serialization.load_pem_private_key(f.read(), password=None)
+            private_key_bytes = Path(args.private_key).read_bytes()
+            private_key = serialization.load_pem_private_key(
+                private_key_bytes, 
+                password=None
+             )
         except Exception as e:
             print("Invalid key file {}: {}".format(keyfile, e))
             exit(1)
@@ -41,14 +46,15 @@ def main():
     else:
         keyfile = "ca.key"
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        with open(keyfile, "wb") as f:
-            file_content = private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
-            )
-            f.write(file_content)
-            print("Private key written to {}".format(keyfile))
+        private_key_bytes = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        private_key_path = Path(keyfile)
+        private_key_path.chmod(0o600)
+        private_key_path.write_bytes(private_key_bytes)
+        print("Private key written to {}".format(keyfile))
 
     now = datetime.today()
     one_year_from_now = now + timedelta(days=365)
@@ -89,13 +95,18 @@ def main():
     )
 
     builder = builder.add_extension(
+        x509.BasicConstraints(ca=True, path_length=None), 
+        critical=True
+    )
+
+    builder = builder.add_extension(
         x509.ExtendedKeyUsage([x509.OID_CLIENT_AUTH, x509.OID_SERVER_AUTH]),
         critical=False
     )
 
     builder = builder.add_extension(
-        x509.BasicConstraints(ca=True, path_length=None), 
-        critical=True
+        x509.SubjectKeyIdentifier.from_public_key(public_key),
+        critical=False
     )
 
     # Misc
@@ -103,10 +114,10 @@ def main():
     builder = builder.public_key(public_key)
 
     cert = builder.sign(private_key=private_key, algorithm=hashes.SHA256())
+    cert_pem = cert.public_bytes(encoding=serialization.Encoding.PEM)
 
-    with open(args.output_file, "wb") as f:
-        file_content = cert.public_bytes(encoding=serialization.Encoding.PEM)
-        f.write(file_content)
+    output_path = Path(args.output_file)
+    output_path.write_bytes(cert_pem)
 
     print("Certificate written to {}".format(args.output_file))
 
