@@ -39,6 +39,7 @@ def main():
     argparser.add_argument("common_name", help="The certificate's common name")
     argparser.add_argument("-a", "--alternative-names", dest="alternative_names", nargs="+", help="Alternative names for the certificate", default=list())
     argparser.add_argument("-k", "--private-key", help="The private key used to sign the certificate", default=None)
+    argparser.add_argument("-d", "--expiry-days", help="Days until ca expires", type=int, default=365)
     args = argparser.parse_args()
 
     if args.private_key is not None:
@@ -83,7 +84,7 @@ def main():
     ca_cert = x509.load_pem_x509_certificate(ca_bytes)
 
     now = datetime.today()
-    one_year_from_now = now + timedelta(days=365)
+    one_year_from_now = now + timedelta(days=args.expiry_days)
 
     public_key = private_key.public_key()
     builder = x509.CertificateBuilder()

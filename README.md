@@ -52,8 +52,8 @@ Certificate:
 ```
 
 ```
-$ ./generate_cert.py -h
-usage: generate_cert.py [-h] [-a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]] [-k PRIVATE_KEY] ca_key ca_cert common_name
+$ ./generate_cert.py --help
+usage: generate_cert.py [-h] [-a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]] [-k PRIVATE_KEY] [-d EXPIRY_DAYS] ca_key ca_cert common_name
 
 Generate a self-signed CA
 
@@ -62,12 +62,14 @@ positional arguments:
   ca_cert               The path to the certificate for the signing CA
   common_name           The certificate's common name
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...], --alternative-name ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]
+  -a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...], --alternative-names ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]
                         Alternative names for the certificate
   -k PRIVATE_KEY, --private-key PRIVATE_KEY
                         The private key used to sign the certificate
+  -d EXPIRY_DAYS, --expiry-days EXPIRY_DAYS
+                        Days until ca expires
 ```
 
 ```
