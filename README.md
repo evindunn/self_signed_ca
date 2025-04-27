@@ -7,7 +7,7 @@ $ pip install -r requirements.txt
 
 ```
 $ ./generate_ca.py -h
-usage: generate_ca.py [-h] [-k PRIVATE_KEY] common_name country province locality organization email output_file
+usage: generate_ca.py [-h] [-k PRIVATE_KEY] [-d EXPIRY_DAYS] common_name country province locality organization email
 
 Generate a self-signed CA
 
@@ -18,12 +18,13 @@ positional arguments:
   locality              The CA's locality
   organization          The name of the CA's organization
   email                 The contact email for the CA
-  output_file           The output file for the certificate
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -k PRIVATE_KEY, --private-key PRIVATE_KEY
                         The private key used to sign the certificate
+  -d EXPIRY_DAYS, --expiry-days EXPIRY_DAYS
+                        Days until ca expires
 ```
 
 ```

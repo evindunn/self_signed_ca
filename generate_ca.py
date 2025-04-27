@@ -23,6 +23,7 @@ def main():
     argparser.add_argument("organization", help="The name of the CA's organization")
     argparser.add_argument("email", help="The contact email for the CA")
     argparser.add_argument("-k", "--private-key", help="The private key used to sign the certificate", default=None)
+    argparser.add_argument("-d", "--expiry-days", help="Days until ca expires", type=int, default=365)
     args = argparser.parse_args()
 
     if args.private_key is not None:
@@ -58,7 +59,7 @@ def main():
         print(f"Private key written to {keyfile}")
 
     now = datetime.today()
-    one_year_from_now = now + timedelta(days=365)
+    one_year_from_now = now + timedelta(days=args.expiry_days)
 
     public_key = private_key.public_key()
     builder = x509.CertificateBuilder()
