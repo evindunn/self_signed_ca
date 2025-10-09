@@ -1,0 +1,22 @@
+[project]
+name = "self-signed-ca"
+version = "0.0.1"
+description = ""
+authors = [
+    {name = "Evin Dunn <@evindunn>"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "cryptography>=36.0.1,<37.0.0"
+]
+
+[project.scripts]
+ssca = 'self_signed_ca.ca:main'
+ssc = 'self_signed_ca.cert:main'
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -2,7 +2,6 @@
 
 from argparse import ArgumentParser
 from datetime import datetime
-from datetime import timedelta
 from ipaddress import ip_address
 from os.path import exists as path_exists
 from pathlib import Path
@@ -16,6 +15,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
+from . import utils
 
 REGEXP_IP_ADDR = r"(\d{1,3}\.){3}\d{1,3}"
 
@@ -37,9 +37,9 @@ def main():
     argparser.add_argument("ca_key", help="The path to the private key for the signing CA")
     argparser.add_argument("ca_cert", help="The path to the certificate for the signing CA")
     argparser.add_argument("common_name", help="The certificate's common name")
-    argparser.add_argument("-a", "--alternative-names", dest="alternative_names", nargs="+", help="Alternative names for the certificate", default=list())
+    argparser.add_argument("-a", "--alternative-name", dest="alternative_names", nargs="+", help="Alternative names for the certificate", default=list())
     argparser.add_argument("-k", "--private-key", help="The private key used to sign the certificate", default=None)
-    argparser.add_argument("-d", "--expiry-days", help="Days until ca expires", type=int, default=365)
+    argparser.add_argument("-d", "--expiry-date", help="Expiry date conforming to iso-8601 (2007-04-05T14:30Z)", type=datetime.fromisoformat, default=None)
     args = argparser.parse_args()
 
     if args.private_key is not None:
@@ -83,9 +83,6 @@ def main():
     ca_bytes = Path(args.ca_cert).read_bytes()
     ca_cert = x509.load_pem_x509_certificate(ca_bytes)
 
-    now = datetime.today()
-    one_year_from_now = now + timedelta(days=args.expiry_days)
-
     public_key = private_key.public_key()
     builder = x509.CertificateBuilder()
 
@@ -108,8 +105,7 @@ def main():
     builder = builder.subject_name(ca_name).issuer_name(ca_cert.subject)
 
     # Dates
-    builder = builder.not_valid_before(datetime.today() - timedelta(minutes=1))
-    builder = builder.not_valid_after(one_year_from_now)
+    builder = utils.set_cert_dates(builder, args.expiry_date)
 
     # Not a CA
     builder = builder.add_extension(

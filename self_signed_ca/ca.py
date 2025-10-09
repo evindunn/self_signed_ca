@@ -2,7 +2,6 @@
 
 from argparse import ArgumentParser
 from datetime import datetime
-from datetime import timedelta
 from pathlib import Path
 from os.path import exists as path_exists
 from sys import exit as sys_exit
@@ -12,6 +11,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
+
+from . import utils
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
     argparser.add_argument("organization", help="The name of the CA's organization")
     argparser.add_argument("email", help="The contact email for the CA")
     argparser.add_argument("-k", "--private-key", help="The private key used to sign the certificate", default=None)
-    argparser.add_argument("-d", "--expiry-days", help="Days until ca expires", type=int, default=365)
+    argparser.add_argument("-d", "--expiry-date", help="Expiry date conforming to iso-8601 (2007-04-05T14:30Z)", type=datetime.fromisoformat, default=None)
     args = argparser.parse_args()
 
     if args.private_key is not None:
@@ -58,9 +59,6 @@ def main():
         private_key_path.write_bytes(private_key_bytes)
         print(f"Private key written to {keyfile}")
 
-    now = datetime.today()
-    one_year_from_now = now + timedelta(days=args.expiry_days)
-
     public_key = private_key.public_key()
     builder = x509.CertificateBuilder()
     
@@ -77,8 +75,7 @@ def main():
     builder = builder.subject_name(ca_name).issuer_name(ca_name)
 
     # Dates
-    builder = builder.not_valid_before(datetime.today() - timedelta(minutes=1))
-    builder = builder.not_valid_after(one_year_from_now)
+    builder = utils.set_cert_dates(builder, args.expiry_date)
 
     # Extensions
     builder = builder.add_extension(
