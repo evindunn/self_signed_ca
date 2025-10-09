@@ -1,15 +1,15 @@
 # Installation
-```
+```bash
 # Create & activate a venv
 python3 -m venv venv
 source venv/bin/activate
 
 # Install tools
-pip install https://github.com:evindunn/self_signed_ca.git
+pip install git+https://github.com/evindunn/self_signed_ca.git
 
 # ssca and ssc commands are available within the venv
-ssca --version
-ssc --version
+ssca --help
+ssc --help
 ```
 
 # Usage
