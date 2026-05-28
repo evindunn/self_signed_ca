@@ -2,7 +2,13 @@ name: CI
 
 on:
   push:
+    paths:
+      - 'self_signed_ca/**'
+      - 'pyproject.toml'
   pull_request:
+    paths:
+      - 'self_signed_ca/**'
+      - 'pyproject.toml'
 
 jobs:
   test:
