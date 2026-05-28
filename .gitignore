@@ -3,3 +3,4 @@
 **/*.pyc
 **/*.key
 **/*.crt
+.coverage
