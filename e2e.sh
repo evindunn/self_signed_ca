@@ -5,6 +5,10 @@
 
 set -eo pipefail
 
+COLOR_RED=$'\033[0;31m'
+COLOR_GREEN=$'\033[0;32m'
+COLOR_RESET=$'\033[0m'
+
 original_dir="$(pwd)"
 
 temp_dir="$(mktemp -d)"
@@ -14,6 +18,14 @@ cd "$temp_dir"
 
 format_asn1_utc() {
     python3 -c 'import datetime; import sys; print(datetime.datetime.fromisoformat(sys.argv[1]).strftime("%b %e %H:%M:%S %Y GMT"))' "$1"
+}
+
+print_success() {
+    printf "%sSUCCESS: %s%s\n" "$COLOR_GREEN" "$1" "$COLOR_RESET"
+}
+
+print_error() {
+    printf "%sERROR: %s%s\n" "$COLOR_RED" "$1" "$COLOR_RESET"
 }
 
 extract_cert_field() {
@@ -36,10 +48,11 @@ keyhash=$(openssl rsa -noout -modulus -in test.localdomain.net.key | openssl md5
 crthash=$(openssl x509 -noout -modulus -in test.localdomain.net.crt | openssl md5)
 
 if [ "$keyhash" != "$crthash" ]; then
-    echo "ERROR: Key and certificate do not match"
+    print_error 'Key and certificate do not match'
+    printf "\n"
     exit 1
 else
-    printf "SUCCESS: Key and certificate match\n\n"
+    print_success 'Key and certificate match'
 fi
 
 ACTUAL_SUBJECT=$(extract_cert_field '-subject' 'subject')
@@ -54,11 +67,11 @@ for field in SUBJECT ISSUER NOT_BEFORE NOT_AFTER; do
     actual_value="${!actual_var}"
 
     if [ "$actual_value" != "$expected_value" ]; then
-        echo "ERROR: ${field} does not match expected value"
+        print_error "${field} does not match expected value"
         echo   "Expected: $expected_value"
         printf "Actual:   %s\n\n" "$actual_value"
         exit 1
     else
-        printf "SUCCESS: %s matches expected value\n\n" "$field"
+        print_success "$field matches expected value"
     fi
 done

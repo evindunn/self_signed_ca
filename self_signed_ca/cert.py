@@ -135,7 +135,7 @@ def generate_cert(
 
 def main():
     """Parse CLI arguments and generate a signed certificate."""
-    argparser = ArgumentParser(description="Generate a self-signed CA")
+    argparser = ArgumentParser(description="Generate a cert given a CA")
     argparser.add_argument("ca_key", help="The path to the private key for the signing CA")
     argparser.add_argument("ca_cert", help="The path to the certificate for the signing CA")
     argparser.add_argument("common_name", help="The certificate's common name")

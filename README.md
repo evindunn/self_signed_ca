@@ -1,8 +1,8 @@
 # Installation
 ```bash
 # Create & activate a venv
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Install tools
 pip install git+https://github.com/evindunn/self_signed_ca.git
@@ -46,10 +46,10 @@ Generate a cert given a CA
 
 ```
 usage: ssc [-h] [-a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]]
-           [-k PRIVATE_KEY] [-d EXPIRY_DAYS]
+           [-k PRIVATE_KEY] [-d EXPIRY_DATE]
            ca_key ca_cert common_name
 
-Generate a self-signed CA
+Generate a cert given a CA
 
 positional arguments:
   ca_key                The path to the private key for the signing CA
@@ -58,10 +58,10 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -a ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...], --alternative-names ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]
+  -a, --alternative-name ALTERNATIVE_NAMES [ALTERNATIVE_NAMES ...]
                         Alternative names for the certificate
-  -k PRIVATE_KEY, --private-key PRIVATE_KEY
+  -k, --private-key PRIVATE_KEY
                         The private key used to sign the certificate
-  -d EXPIRY_DAYS, --expiry-date EXPIRY_DAYS
-                        Days until ca expires
+  -d, --expiry-date EXPIRY_DATE
+                        Expiry date conforming to iso-8601 (2007-04-05T14:30Z)
 ```
