@@ -25,7 +25,7 @@ def test_set_cert_dates_uses_default_expiry_when_missing(monkeypatch):
 
     result = utils.set_cert_dates(builder, None)
 
-    now = FrozenDateTime.now()
+    now = FrozenDateTime.now(utils.UTC)
     builder.not_valid_before.assert_called_once_with(now - datetime.timedelta(minutes=1))
     dated_builder.not_valid_after.assert_called_once_with(now + datetime.timedelta(days=365))
     assert result is final_builder
@@ -45,7 +45,7 @@ def test_set_cert_dates_uses_explicit_expiry_when_provided(monkeypatch):
     result = utils.set_cert_dates(builder, expiry_date)
 
     builder.not_valid_before.assert_called_once_with(
-        FrozenDateTime.now() - datetime.timedelta(minutes=1)
+        FrozenDateTime.now(utils.UTC) - datetime.timedelta(minutes=1)
     )
     dated_builder.not_valid_after.assert_called_once_with(expiry_date)
     assert result is final_builder
