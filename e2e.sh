@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Despite my best efforts to keep this both simple and portable, this will 
+# only run properly on OSX
+
 set -eo pipefail
 
 original_dir="$(pwd)"

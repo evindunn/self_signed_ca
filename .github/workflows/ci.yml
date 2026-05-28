@@ -12,16 +12,23 @@ jobs:
       - name: Check Out
         uses: actions/checkout@v4
 
-      - name: Set Up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Install Dependencies
-        run: pip install . pytest pytest-cov
+        run: poetry install --only=dev
 
       - name: Test
-        run: python -m pytest
+        run: poetry run pytest
 
-      - name: E2E
-        run: bash e2e.sh
+    #   - name: E2E
+    #     run: bash e2e.sh
