@@ -12,21 +12,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: 
-      image: 'evindunn/poetry:latest'
-      env:
-        POETRY_CACHE_DIR: ~/.cache/poetry
-
+    container: 'evindunn/poetry:latest'
     steps:
       - name: Check Out
         uses: actions/checkout@v4
 
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/poetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
+      - uses: evindunn/github-actions/poetry-cache@main
 
       - name: Install Dependencies
         run: poetry install --with=dev
