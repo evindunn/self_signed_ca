@@ -10,10 +10,6 @@ on:
   pull_request: *build-rules
   workflow_dispatch: {}
 
-permissions:
-  contents: read
-  code-quality: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
