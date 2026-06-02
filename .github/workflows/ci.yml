@@ -1,13 +1,17 @@
 name: CI
 
 on:
-  push:
-    paths: &changed-files
+  push: &build-rules
+    branches: [main]
+    paths:
       - self_signed_ca/**
       - pyproject.toml
       - .github/workflows/ci.yml
-  pull_request:
-    paths: *changed-files
+  pull_request: *build-rules
+
+permissions:
+  contents: read
+  code-quality: write
 
 jobs:
   test:
@@ -23,7 +27,14 @@ jobs:
         run: poetry install --with=dev
 
       - name: Test
-        run: poetry run pytest
+        run: poetry run pytest --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage report
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: coverage.xml
+          language: python
+          label: pytest
 
     #   - name: E2E
     #     run: bash e2e.sh
