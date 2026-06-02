@@ -22,7 +22,10 @@ jobs:
       - name: Check Out
         uses: actions/checkout@v4
 
-      - uses: evindunn/github-actions/poetry-cache@main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'poetry'
 
       - name: Install Dependencies
         run: poetry install --with=dev
